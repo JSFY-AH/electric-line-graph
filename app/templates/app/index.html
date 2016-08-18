@@ -53,7 +53,6 @@
         for(var xl = 0; xl < data.length; ++xl){
             id_data_mp[data[xl].id] = data[xl];
         }
-{#        console.log(data);#}
         var graph = new Q.Graph("canvas");
         var line = {{ line | safe }};
         $("[name=line_id]").html(line.id);
@@ -61,6 +60,7 @@
         if(painted == false){
             var root = createNode(line.name);
             root.parentChildrenDirection = Q.Consts.DIRECTION_RIGHT;
+            root.description=line.name;
             var node_list = {};
             for(var i = 0; i < data.length; ++i){
                 var node;
@@ -69,68 +69,29 @@
                     node = createNode(data_tmp.name, root);
                     node.user_id = data_tmp.id;
                     node.description = data_tmp.description;
+                    node.image = "/site_media/images/online.png";
                 }else{
                     node = createNode(data_tmp.name, node_list[data_tmp.father_id]);
                     node.user_id = data_tmp.id;
                     node.description = data_tmp.description;
                 }
+                addNodeIcon(node, data_tmp);
                 node.parentChildrenDirection = Q.Consts.DIRECTION_RIGHT;
                 node.layoutType = Q.Consts.LAYOUT_TYPE_EVEN_VERTICAL ;
                 node_list[data_tmp.id] = node;
-            }
-            var layouter = new Q.TreeLayouter(graph);
-            layouter.doLayout({callback: function(){
-                graph.zoomToOverview();
-            }});
-        }else{
-            var root = graph.createNode(line.name, parseInt(line.X), parseInt(line.Y));
-            root.user_id = line.id;
-
-{#            console.log(root);#}
-            var node_list = {};
-            for(var i = 0; i < data.length; ++i){
-                var node;
-                var data_tmp = data[i];
-                if(data_tmp.father_id == 0){
-                    node = graph.createNode(data_tmp.name, parseInt(data_tmp.X), parseInt(data_tmp.Y));
-                    node.setStyle(Q.Styles.BORDER, 3);
-                    node.setStyle(Q.Styles.BORDER_COLOR, '#FFFFFF');
-                    node.user_id = data_tmp.id;
-                    node.description = data_tmp.description;
-                    var edge = graph.createEdge(root, node);
-                    edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
-                }else{
-                    node = graph.createNode(data_tmp.name, parseInt(data_tmp.X), parseInt(data_tmp.Y));
-                    node.setStyle(Q.Styles.BORDER, 3);
-                    node.setStyle(Q.Styles.BORDER_COLOR, '#FFFFFF');
-                    node.user_id = data_tmp.id;
-                    node.description = data_tmp.description;
-                    var edge = graph.createEdge(node_list[data_tmp.father_id], node);
-                    edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
-                    if(data_tmp.status == "短路"){
-                        edge.setStyle(Q.Styles.EDGE_COLOR, "#FF0000");
-                        edge.setStyle(Q.Styles.EDGE_WIDTH, 3);
-                    }
-                }
-                node_list[data_tmp.id] = node;
-                if(data_tmp.online=="异常"){
-                    node.setStyle(Q.Styles.BORDER, 3);
-                    node.setStyle(Q.Styles.BORDER_COLOR, '#000000');
-                    node.setStyle(Q.Styles.PADDING, 1);
-                }
-                if(data_tmp.status == "短路"){
+                if(data_tmp.status == "短路" || data_tmp.status == "接地"){
                     var tmp = data_tmp.id;
                     while(1){
                         var C_node = node_list[tmp];
-                        C_node.setStyle(Q.Styles.BORDER, 3);
-                        C_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');
+{#                        C_node.setStyle(Q.Styles.BORDER, 3);#}
+{#                        C_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');#}
+{#                        C_node.setStyle(Q.Styles.PADDING, 5);#}
                         var father_node = node_list[id_data_mp[tmp].father_id];
-{#                        console.log(C_node);#}
-{#                        console.log(father_node);#}
                         if(father_node == undefined && id_data_mp[tmp].father_id == 0){
                             father_node = root;
-                            father_node.setStyle(Q.Styles.BORDER, 3);
-                            father_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');
+{#                            father_node.setStyle(Q.Styles.BORDER, 3);#}
+{#                            father_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');#}
+{#                            father_node.setStyle(Q.Styles.PADDING, 5);#}
                             var edge = graph.createEdge(father_node, C_node);
                             edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
                             edge.setStyle(Q.Styles.EDGE_COLOR, "#FF0000");
@@ -140,8 +101,9 @@
                         if(father_node == undefined){
                             break;
                         }
-                        father_node.setStyle(Q.Styles.BORDER, 3);
-                        father_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');
+{#                        father_node.setStyle(Q.Styles.BORDER, 3);#}
+{#                        father_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');#}
+{#                        father_node.setStyle(Q.Styles.PADDING, 5);#}
                         var edge = graph.createEdge(father_node, C_node);
                         edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
                         edge.setStyle(Q.Styles.EDGE_COLOR, "#FF0000");
@@ -149,8 +111,72 @@
                         tmp = father_node.user_id;
                     }
                 }
-
-
+            }
+            var layouter = new Q.TreeLayouter(graph);
+            layouter.doLayout({callback: function(){
+                graph.zoomToOverview();
+            }});
+        }else{
+            var root = graph.createNode(line.name, parseInt(line.X), parseInt(line.Y));
+            root.user_id = line.id;
+            root.description=line.name;
+            var node_list = {};
+            for(var i = 0; i < data.length; ++i){
+                var node;
+                var data_tmp = data[i];
+                if(data_tmp.father_id == 0){
+                    node = graph.createNode(data_tmp.name, parseInt(data_tmp.X), parseInt(data_tmp.Y));
+{#                    node.setStyle(Q.Styles.BORDER, 3);#}
+{#                    node.setStyle(Q.Styles.BORDER_COLOR, '#FFFFFF');#}
+                    node.user_id = data_tmp.id;
+                    node.description = data_tmp.description;
+                    var edge = graph.createEdge(root, node);
+                    edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
+                }else{
+                    node = graph.createNode(data_tmp.name, parseInt(data_tmp.X), parseInt(data_tmp.Y));
+{#                    node.setStyle(Q.Styles.BORDER, 3);#}
+{#                    node.setStyle(Q.Styles.BORDER_COLOR, '#FFFFFF');#}
+                    node.user_id = data_tmp.id;
+                    node.description = data_tmp.description;
+                    var edge = graph.createEdge(node_list[data_tmp.father_id], node);
+                    edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
+{#                    if(data_tmp.status == "短路"){#}
+{#                        edge.setStyle(Q.Styles.EDGE_COLOR, "#FF0000");#}
+{#                        edge.setStyle(Q.Styles.EDGE_WIDTH, 3);#}
+{#                    }#}
+                }
+                addNodeIcon(node, data_tmp);
+                node_list[data_tmp.id] = node;
+                if(data_tmp.status == "短路" || data_tmp.status == "接地"){
+                    var tmp = data_tmp.id;
+                    while(1){
+                        var C_node = node_list[tmp];
+{#                        C_node.setStyle(Q.Styles.BORDER, 3);#}
+{#                        C_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');#}
+{#                        C_node.setStyle(Q.Styles.PADDING, 5);#}
+                        var father_node = node_list[id_data_mp[tmp].father_id];
+                        if(father_node == undefined && id_data_mp[tmp].father_id == 0){
+                            father_node = root;
+{#                            father_node.setStyle(Q.Styles.BORDER, 3);#}
+{#                            father_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');#}
+                            var edge = graph.createEdge(father_node, C_node);
+                            edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
+                            edge.setStyle(Q.Styles.EDGE_COLOR, "#FF0000");
+                            edge.setStyle(Q.Styles.EDGE_WIDTH, 3);
+                            break;
+                        }
+                        if(father_node == undefined){
+                            break;
+                        }
+{#                        father_node.setStyle(Q.Styles.BORDER, 3);#}
+{#                        father_node.setStyle(Q.Styles.BORDER_COLOR, '#FF0000');#}
+                        var edge = graph.createEdge(father_node, C_node);
+                        edge.edgeType = Q.Consts.EDGE_TYPE_VERTICAL_HORIZONTAL;
+                        edge.setStyle(Q.Styles.EDGE_COLOR, "#FF0000");
+                        edge.setStyle(Q.Styles.EDGE_WIDTH, 3);
+                        tmp = father_node.user_id;
+                    }
+                }
             }
         }
         graph.addCustomInteraction({
@@ -166,7 +192,7 @@
                 if(node_description == undefined){
                     var edit_right = {{ edit_right }};
                     if(edit_right == 1){
-                        if(target.$data !="Q-node"){
+                        if(target.name =="label"){
                             node_description = target.parent.$data.description;
                         }
                     }else{
@@ -203,6 +229,26 @@
             console.log(yy);
             $("#tip").html(node_description).css("display", "block").css("left", xx).css("top", yy).css("background-color", "rgba(0,0,0,1)");
         };
+        function addNodeIcon(node, data_tmp){
+            if(data_tmp.online == "离线"){
+                node.image = "/web_media/images/offline.png";
+            }else if(data_tmp.status == "正常"){
+                node.image = "/web_media/images/online.png";
+            }else if(data_tmp.status == "未登录"){
+                node.image = "/web_media/images/weidenglu.png";
+            }else if(data_tmp.status == "接地"){
+                node.image = "/web_media/images/jiedi.png";
+            }else{
+                node.image = "/web_media/images/duanlu.png";
+            }
+            node.setStyle(Q.Styles.LABEL_OFFSET_Y, 0);
+            node.setStyle(Q.Styles.LABEL_POSITION, Q.Position.RIGHT_MIDDLE);
+            node.setStyle(Q.Styles.LABEL_ANCHOR_POSITION, Q.Position.LEFT_MIDDLE);
+{#            node.setStyle(Q.Styles.LABEL_BORDER, 1);#}
+            node.setStyle(Q.Styles.LABEL_POINTER, true);
+            node.setStyle(Q.Styles.LABEL_PADDING, new Q.Insets(2, 5));
+            node.setStyle(Q.Styles.LABEL_BACKGROUND_GRADIENT, Q.Gradient.LINEAR_GRADIENT_VERTICAL);
+        }
         function createNode(name, from){
             var node = graph.createNode(name);
             if(from){
