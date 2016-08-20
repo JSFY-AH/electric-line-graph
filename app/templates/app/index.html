@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=yes">
     <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
     <link rel="stylesheet" type="text/css"  href= "http://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css">
     <script src="/web_media/js/qunee-min.js"></script>
@@ -79,7 +80,7 @@
                 node.parentChildrenDirection = Q.Consts.DIRECTION_RIGHT;
                 node.layoutType = Q.Consts.LAYOUT_TYPE_EVEN_VERTICAL ;
                 node_list[data_tmp.id] = node;
-                if(data_tmp.status == "短路" || data_tmp.status == "接地"){
+                if(data_tmp.status == "0" || data_tmp.status == "0"){ //短路接地
                     var tmp = data_tmp.id;
                     while(1){
                         var C_node = node_list[tmp];
@@ -147,7 +148,7 @@
                 }
                 addNodeIcon(node, data_tmp);
                 node_list[data_tmp.id] = node;
-                if(data_tmp.status == "短路" || data_tmp.status == "接地"){
+                if(data_tmp.status == "0" || data_tmp.status == "0"){  //短路接地
                     var tmp = data_tmp.id;
                     while(1){
                         var C_node = node_list[tmp];
@@ -230,13 +231,13 @@
             $("#tip").html(node_description).css("display", "block").css("left", xx).css("top", yy).css("background-color", "rgba(0,0,0,1)");
         };
         function addNodeIcon(node, data_tmp){
-            if(data_tmp.online == "离线"){
+            if(data_tmp.online == "0"){
                 node.image = "/web_media/images/offline.png";
-            }else if(data_tmp.status == "正常"){
+            }else if(data_tmp.status == "1"){
                 node.image = "/web_media/images/online.png";
-            }else if(data_tmp.status == "未登录"){
+            }else if(data_tmp.status == "null"){
                 node.image = "/web_media/images/weidenglu.png";
-            }else if(data_tmp.status == "接地"){
+            }else if(data_tmp.status == "0"){
                 node.image = "/web_media/images/jiedi.png";
             }else{
                 node.image = "/web_media/images/duanlu.png";
