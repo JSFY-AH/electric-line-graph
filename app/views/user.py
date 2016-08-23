@@ -15,13 +15,17 @@ def get_md5_value(src):
     yMd5_Digest = myMd5.hexdigest()
     return yMd5_Digest
 
-
+@csrf_exempt
 def login(request):
-    username = request.POST.get("username", None)
-    password = request.POST.get("password", None)
+    print "xxxx"
+    username = request.GET.get("username", None)
+    password = request.GET.get("password", None)
+    print "received Data:"
+    print username
+    print password
+    print "received end"
     ret_data = {}
-    ret_data["code"] = 401
-    ret_data["data"] = "error"
+    ret_data["result"] = "error"
     if username is None or password is None:
         return HttpResponse(json.dumps(ret_data))
     DB = database.SqlServer()
@@ -37,27 +41,23 @@ def login(request):
     if user_db is None:
         return HttpResponse(json.dumps(ret_data))
     else:
-        user = {}
-        user["id"] = user_db[0]
-        user["name"] = user_db[1]
+        user_id = user_db[0]
         ret_data = {}
-        ret_data["code"] = 200
-        ret_data["data"] = user
-
+        ret_data["user_id"] = user_id
+        print ret_data
         return HttpResponse(json.dumps(ret_data))
 
 
 def getAreaList(request):
-    username = request.GET.get("username", None)
+    user_id = request.GET.get("user_id", None)
     ret_data = {}
-    ret_data["code"] = 401
-    ret_data["data"] = "error"
-    if username is None:
+    ret_data["result"] = "error"
+    if user_id is None:
         return HttpResponse(json.dumps(ret_data))
     DB = database.SqlServer()
     conn = DB.connnect()
     cur = conn.cursor()
-    cur.execute('select AreaID from UserRange where UserID=?', username)
+    cur.execute('select AreaID from UserRange where UserID=?', user_id)
     area_query = cur.fetchall()
     AreaList = []
     for row in area_query:
@@ -75,20 +75,22 @@ def getAreaList(request):
     conn.commit()
     cur.close()
     conn.close()
-    return HttpResponse(json.dumps(AreaList))
+    ret_data = {}
+    ret_data["result"] = "success"
+    ret_data["areaData"] = AreaList
+    return HttpResponse(json.dumps(ret_data))
 
 
 def getLineList(request):
-    areaID = request.GET.get("areaID", None)
+    area_id = request.GET.get("area_id", None)
     ret_data = {}
-    ret_data["code"] = 401
-    ret_data["data"] = "error"
-    if areaID is None:
+    ret_data["result"] = "error"
+    if area_id is None:
         return HttpResponse(json.dumps(ret_data))
     DB = database.SqlServer()
     conn = DB.connnect()
     cur = conn.cursor()
-    cur.execute('select * from Line where AreaID=? and isRemove = 0', areaID)
+    cur.execute('select * from Line where AreaID=? and isRemove = 0', area_id)
     line_query = cur.fetchall()
     LineList = []
     for row in line_query:
@@ -102,4 +104,7 @@ def getLineList(request):
         line_dic["RootInstanceID"] = row[7]
         LineList.append(line_dic)
     print "LineList", LineList
-    return HttpResponse(json.dumps(LineList))
+    ret_data = {}
+    ret_data["result"] = "success"
+    ret_data["lineData"] = LineList
+    return HttpResponse(json.dumps(ret_data))

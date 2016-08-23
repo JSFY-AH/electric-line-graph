@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello Qunee for HTML5</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.1, maximum-scale=10, user-scalable=yes">
+    <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href= "http://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="/web_media/js/jtopo-0.4.8-min.js"></script>
+
+    <script src="http://www.jtopo.com/demo/js/toolbar.js"></script>
+    <script src="/web_media/js/demo.js"></script>
+</head>
+<body>
+    <header style="float: right;">
+        <button id = "edit-position" class="btn btn-success btn-bg" title="Save my Setting" onclick="save_img()" style="display: none;">保存位置修改</button>
+    </header>
+    <canvas width="1000" height="1550" id="canvas" style=" background-color:#111111; border:1px solid #444;"></canvas>
+    <footer>
+        <span name="line_id" style="display: none;"></span>
+        <span name="line_name" style="display: none;"></span>
+        <div id = "tip" style="display: none;color:white; background-color:rgba(0,0,0,1); position:absolute;
+        left: 100px; top:100px; z-index: 10000;padding: 10px;">App<br>PPP<br>kiki</div>
+    </footer>
+    <script>
+        var all_nodes = [];
+        $(document).ready(function(){
+            var edit_right = {{ edit_right }};
+            if(edit_right == 1){
+                $("#edit-position").css("display", "block");
+            }else{
+                $("#edit-position").remove();
+            }
+
+            var x = {{ data|safe }};
+            var data = eval(x);
+            var painted = data[0];
+            var data = data[1];
+
+            var id_data_mp = {};
+            for(var xl = 0; xl < data.length; ++xl){
+                id_data_mp[data[xl].id] = data[xl];
+            }
+            var line = {{ line | safe }};
+            $("[name=line_id]").html(line.id);
+            $("[name=line_name]").html(line.name);
+
+            var windowH = $(window).height();
+            var windowW = $(window).width();
+            var canvas = document.getElementById('canvas');
+            canvas.width = windowW;
+            canvas.height = windowH;
+            var stage = new JTopo.Stage(canvas);
+            stage.wheelZoom = 1.2;
+            var scene = new JTopo.Scene(stage);
+            scene.alpha = 1;
+
+            function addNode(text, online, status, description){
+
+                var node = new JTopo.Node(text);
+                node.description = description;
+                if(online == "0"){
+                    node.setImage('/web_media/images/offline.png', true);
+                    node.alarm = "离线";
+                }else if(online == "1"){
+                    if(status == "0"){
+                        node.setImage('/web_media/images/duanlu.png', true);
+                        node.alarm = "短路";
+                    }else if(status == "1"){
+                        node.setImage('/web_media/images/online.png', true);
+                    }
+                }else{
+                    node.setImage('/web_media/images/weidenglu.png', true);
+                    node.alarm = "未登录";
+                }
+
+                node.fontColor = '0,0,0';
+                node.textPosition = 'Middle_Right';
+                scene.add(node);
+
+                node.mouseover(function(e){
+                    var desc = node.description;
+                    var xx = e.clientX;
+                    var yy = e.clientY;
+                    $("#tip").html(desc).css("display", "block").css("left", xx).css("top", yy).css("background-color", "rgba(0,0,0,0.5)");
+                });
+                node.mouseout(function(){
+                    $("#tip").css("display", "none");
+                });
+                return node;
+            }
+            var line_map = {};
+            function addLink(nodeA, nodeZ){
+                var link = new JTopo.FoldLink(nodeA, nodeZ);
+                if(line_map[nodeA._id] == null){
+                    line_map[nodeA._id] = {};
+                }
+                if(line_map[nodeZ._id] == null){
+                    line_map[nodeZ._id] = {};
+                }
+                line_map[nodeA._id][nodeZ._id] = link;
+
+                line_map[nodeZ._id][nodeA._id] = link;
+                link.strokeColor = '0,0,0';
+                link.lineWidth = 1;
+                link.direction = 'vertical';
+                link.arrowsRadius = 15; //箭头大小
+                link.lineWidth = 3; // 线宽
+                link.bundleOffset = 60; // 折线拐角处的长度
+                link.bundleGap = 20; // 线条之间的间隔
+                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
+                scene.add(link);
+                return link;
+            }
+            if(painted == false){
+                var node_list = {};
+
+                var rootData = data[0];
+                var rootNode = addNode(rootData.name, rootData.online, rootData.status, "root_node");
+                rootNode.user_id = rootData.id;
+                rootNode.father_id = rootData.father_id;
+                node_list[rootData.id] = rootNode;
+                var root_id = rootData.id;
+                all_nodes.push(rootNode);
+
+                for(var i = 1; i < data.length; ++i){
+                    var node;
+                    var data_tmp = data[i];
+                    if(data_tmp.father_id == root_id){
+                        node = addNode(data_tmp.name, data_tmp.online, data_tmp.status, "description");
+                        node.user_id = data_tmp.id;
+                        node.father_id = data_tmp.father_id;
+                        all_nodes.push(node);
+                        addLink(rootNode, node);
+                    }else{
+                        node = addNode(data_tmp.name, data_tmp.online, data_tmp.status,  "description");
+                        father_node = node_list[data_tmp.father_id];
+                        addLink(father_node, node);
+                        node.user_id = data_tmp.id;
+                        node.father_id = data_tmp.father_id;
+                        all_nodes.push(node);
+                    }
+                    node_list[data_tmp.id] = node;
+                    if(data_tmp.status == false){
+                        var father_node =  node_list[data_tmp.father_id];;
+                        while(father_node != undefined){
+                            line_map[node._id][father_node._id].strokeColor = '255,0,0';
+                            node = father_node;
+                            father_node = node_list[father_node.father_id];
+                        }
+                    }
+                }
+                // 树形布局
+                scene.doLayout(JTopo.layout.TreeLayout('right', 100, 200));
+            }else{
+                var node_list = {};
+                var rootData = data[0];
+                var rootNode = addNode(rootData.name, rootData.online, rootData.status, "root_node");
+                rootNode.setLocation(rootData.X, rootData.Y);
+                rootNode.user_id = rootData.id;
+                rootNode.father_id = rootData.father_id;
+                node_list[rootData.id] = rootNode;
+                var root_id = rootData.id;
+                all_nodes.push(rootNode);
+
+                for(var i = 1; i < data.length; ++i){
+                    var node;
+                    var data_tmp = data[i];
+                    if(data_tmp.father_id == root_id){
+                        node = addNode(data_tmp.name, data_tmp.online, data_tmp.status, "description");
+                        node.setLocation(data_tmp.X, data_tmp.Y);
+                        node.user_id = data_tmp.id;
+                        node.father_id = data_tmp.father_id;
+                        all_nodes.push(node);
+                        addLink(rootNode, node);
+                    }else{
+                        node = addNode(data_tmp.name, data_tmp.online, data_tmp.status,  "description");
+                        node.setLocation(data_tmp.X, data_tmp.Y);
+                        father_node = node_list[data_tmp.father_id];
+                        node.user_id = data_tmp.id;
+                        node.father_id = data_tmp.father_id;
+                        addLink(father_node, node);
+                        all_nodes.push(node);
+                    }
+                    node_list[data_tmp.id] = node;
+                    if(data_tmp.status == false){
+                        var father_node =  node_list[data_tmp.father_id];;
+                        while(father_node != undefined){
+                            line_map[node._id][father_node._id].strokeColor = '255,0,0';
+                            node = father_node;
+                            father_node = node_list[father_node.father_id];
+                        }
+                    }
+                }
+            }
+        });
+        function save_img(){
+            console.log(all_nodes.length);
+            for(var i = 0; i < all_nodes.length; ++i){
+               var node = all_nodes[i];
+               var node_id = node.user_id;
+               console.log(node_id);
+               var X = node.cx;
+               var Y = node.cy;
+               var formdata = new FormData();
+               formdata.append("node_id", node_id);
+               formdata.append("node_x", X);
+               formdata.append("node_y", Y);
+               $.ajax({
+                   url:'/graph/node/update_node_position/',
+                   type:'POST',
+                   data:formdata,
+                   cache:false,
+                   processData : false,
+                   contentType : false
+               }).done(function (res) {
+                   if(res == "success"){
+                       console.log("node 保存成功");
+                   }else{
+                       alert(node_id + "号节点位置保存失败，请稍后再试");
+                       return;
+                   }
+               }).fail(function(res){
+                   alert(node_id + "号节点位置保存失败，请稍后再试");
+                   return;
+               });
+           }
+           alert("保存成功");
+        }
+    </script>
+</body>
+</html>
