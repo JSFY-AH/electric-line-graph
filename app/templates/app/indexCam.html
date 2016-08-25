@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>摄像头测试</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE11"/>
+    <meta name="viewport" content="width=device-width, initial-scale=0.1, maximum-scale=10, user-scalable=yes">
+    <link rel="stylesheet" type="text/css"  href= "/web_media/css/bootstrap.min.css">
+    <script src="/web_media/js/jtopo-0.4.8-min.js"></script>
+    <script src="/web_media/js/jquery-2.2.1.min.js"></script>
+
+    <script src="/web_media/js/demo.js"></script>
+    <style>
+        #GT,#GR,#GB,#GL{
+
+        }
+        .GW{
+            position:absolute;
+            display: block;
+            z-index: 1000;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="GT" style="display:none;"></div>
+    <div id="GR" style="display:none;"></div>
+    <div id="GB" style="display:none;"></div>
+    <div id="GL" style="display:none;"></div>
+{#     hspace="-200" vspace="-150"#}
+    <iframe id = "Twindow" width="1000" height="500" src="http://192.168.1.73:64" scrolling="no" style="margin:0 auto;"></iframe>
+
+    <script>
+        var $windowW = $(window).width();
+        var $windowH = $(window).height();
+        console.log($windowH);
+        console.log($windowW);
+{#        var TW = 1365, TH = 58;var BW = 1365, BH = 71;var LW = 17, LH = 641;var RW = 245, RH = 641;#}
+
+        //当iframe是登录页面时
+        $("#Twindow").width($windowW - 20).height($windowH - 30);
+        function login_window(){
+            var LW = 856 * $windowW / 1356;
+            var RW = 231 * $windowW / 1356;
+            var TH = 180 * $windowH / 641;
+            var BH = 180 * $windowH / 641;
+            var TBW = $windowW;
+            var LRH = $windowH;
+            var $GT = $("#GT");
+            var $GR = $("#GR");
+            var $GB = $("#GB");
+            var $GL = $("#GL");
+            $GT.addClass("GW").css({"left":0, "top":0, "width": TBW, "height":TH, "display":"block"});
+            $GB.addClass("GW").css({"left":0, "top":$windowH-BH, "width": TBW, "height":BH, "display":"block"});
+            $GL.addClass("GW").css({"left":0, "top":0, "width": LW, "height":LRH, "display":"block"});
+            $GR.addClass("GW").css({"left":$windowW-RW, "top":0, "width": RW, "height":LRH, "display":"block"});
+        }
+        // 当页面是视频页面时
+        function video_window(){
+            var LW = 50 * $windowW / 1356;
+            var RW = 50 * $windowW / 1356;
+            var TH = 100 * $windowH / 641;
+            var BH = 120 * $windowH / 641;
+            var TBW = $windowW;
+            var LRH = $windowH;
+            $("#Twindow").width($windowW - 20).height($windowH - 30);
+            var $GT = $("#GT");
+            var $GR = $("#GR");
+            var $GB = $("#GB");
+            var $GL = $("#GL");
+            $GT.addClass("GW").css({"left":0, "top":0, "width": TBW, "height":TH, "display":"block"});
+            $GB.addClass("GW").css({"left":0, "top":$windowH-BH, "width": TBW, "height":BH, "display":"block"});
+            $GL.addClass("GW").css({"left":0, "top":0, "width": LW, "height":LRH, "display":"block"});
+            $GR.addClass("GW").css({"left":$windowW-RW, "top":0, "width": RW, "height":LRH, "display":"block"});
+        }
+        video_window();
+        function updateUI(){
+            console.log($("#Twindow"));
+        }
+{#        setInterval("updateUI();", 500);#}
+    </script>
+
+</body>
+</html>

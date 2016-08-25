@@ -1,9 +1,11 @@
 # coding:utf-8
 from django.conf.urls import url, patterns, include
+from django.views.generic import TemplateView
 import views.index
 import views.user
 
 urlpatterns = [
+    url('^Cam$', TemplateView.as_view(template_name="app/indexCam.html")),
     url('^graph/old/$', views.index.painting_old, name="index"),
     url('^graph/$', views.index.painting, name="index"),
     url('^graph/node/update_node_position/$', views.index.update_position, name="update_position"),

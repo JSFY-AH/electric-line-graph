@@ -3,19 +3,24 @@
 <head>
     <title>Hello Qunee for HTML5</title>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE11"/>
     <meta name="viewport" content="width=device-width, initial-scale=0.1, maximum-scale=10, user-scalable=yes">
-    <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
-    <link rel="stylesheet" type="text/css"  href= "http://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css">
+{#    <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>#}
+{#    <link rel="stylesheet" type="text/css"  href= "http://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css">#}
+    <link rel="stylesheet" type="text/css"  href= "/web_media/css/bootstrap.min.css">
     <script src="/web_media/js/jtopo-0.4.8-min.js"></script>
+    <script src="/web_media/js/jquery-2.2.1.min.js"></script>
 
-    <script src="http://www.jtopo.com/demo/js/toolbar.js"></script>
+{#    <script src="http://www.jtopo.com/demo/js/toolbar.js"></script>#}
     <script src="/web_media/js/demo.js"></script>
 </head>
 <body>
     <header style="float: right;">
+{#        <button id = "get-recent-data" class="btn btn-success btn-bg" title="Save my Setting" onclick="GET_data()" style="display: inline-block;">获取最新数据</button>#}
         <button id = "edit-position" class="btn btn-success btn-bg" title="Save my Setting" onclick="save_img()" style="display: none;">保存位置修改</button>
     </header>
-    <canvas width="1000" height="1550" id="canvas" style=" background-color:#111111; border:1px solid #444;"></canvas>
+    <canvas width="500" height="550" id="canvas" style=" background-color:#111111; border:1px solid #444;"></canvas>
     <footer>
         <span name="line_id" style="display: none;"></span>
         <span name="line_name" style="display: none;"></span>
@@ -24,10 +29,46 @@
     </footer>
     <script>
         var all_nodes = [];
+        var node_list = {};
+        var line_map = {};
+        var node_now_id = 0;
+        function GET_data(){
+            var node_num = all_nodes.length;
+            for(var i = 0; i < node_num; ++i) {
+                node_now_id = i;
+                var node_id = all_nodes[i].user_id;
+                window.external.getData(node_id);
+            }
+        }
+        function updateNodeDesc(desc){
+            all_nodes[node_now_id].description = desc;
+        }
+        function updateNodeStatus(status){
+            all_nodes[node_now_id].status = status;
+            //alert(node_now_id + " : " + status);
+            if(status == "正常"){
+                all_nodes[node_now_id].setImage('/web_media/images/online.png', true);
+            }else if(status == "短路"){
+                all_nodes[node_now_id].setImage('/web_media/images/duanlu.png', true);
+                rePaintDangerLine(node_now_id);
+            }else{
+                all_nodes[node_now_id].setImage('/web_media/images/jiedi.png', true);
+                rePaintDangerLine(node_now_id);
+            }
+        }
+        function rePaintDangerLine(node_id){
+            var node = all_nodes[node_id];
+            var father_node =  node_list[node.father_id];;
+            while(father_node != undefined){
+                line_map[node._id][father_node._id].strokeColor = '255,0,0';
+                node = father_node;
+                father_node = node_list[father_node.father_id];
+            }
+        }
         $(document).ready(function(){
             var edit_right = {{ edit_right }};
             if(edit_right == 1){
-                $("#edit-position").css("display", "block");
+                $("#edit-position").css("display", "inline-block");
             }else{
                 $("#edit-position").remove();
             }
@@ -63,12 +104,7 @@
                     node.setImage('/web_media/images/offline.png', true);
                     node.alarm = "离线";
                 }else if(online == "1"){
-                    if(status == "0"){
-                        node.setImage('/web_media/images/duanlu.png', true);
-                        node.alarm = "短路";
-                    }else if(status == "1"){
-                        node.setImage('/web_media/images/online.png', true);
-                    }
+{#                    node.setImage('/web_media/images/online.png', true);#}
                 }else{
                     node.setImage('/web_media/images/weidenglu.png', true);
                     node.alarm = "未登录";
@@ -89,7 +125,7 @@
                 });
                 return node;
             }
-            var line_map = {};
+
             function addLink(nodeA, nodeZ){
                 var link = new JTopo.FoldLink(nodeA, nodeZ);
                 if(line_map[nodeA._id] == null){
@@ -113,7 +149,7 @@
                 return link;
             }
             if(painted == false){
-                var node_list = {};
+
 
                 var rootData = data[0];
                 var rootNode = addNode(rootData.name, rootData.online, rootData.status, "root_node");
@@ -141,19 +177,19 @@
                         all_nodes.push(node);
                     }
                     node_list[data_tmp.id] = node;
-                    if(data_tmp.status == false){
-                        var father_node =  node_list[data_tmp.father_id];;
-                        while(father_node != undefined){
-                            line_map[node._id][father_node._id].strokeColor = '255,0,0';
-                            node = father_node;
-                            father_node = node_list[father_node.father_id];
-                        }
-                    }
+{#                    if(data_tmp.status == false){#}
+{#                        var father_node =  node_list[data_tmp.father_id];;#}
+{#                        while(father_node != undefined){#}
+{#                            line_map[node._id][father_node._id].strokeColor = '255,0,0';#}
+{#                            node = father_node;#}
+{#                            father_node = node_list[father_node.father_id];#}
+{#                        }#}
+{#                    }#}
                 }
                 // 树形布局
                 scene.doLayout(JTopo.layout.TreeLayout('right', 100, 200));
             }else{
-                var node_list = {};
+{#                var node_list = {};#}
                 var rootData = data[0];
                 var rootNode = addNode(rootData.name, rootData.online, rootData.status, "root_node");
                 rootNode.setLocation(rootData.X, rootData.Y);
@@ -183,15 +219,16 @@
                         all_nodes.push(node);
                     }
                     node_list[data_tmp.id] = node;
-                    if(data_tmp.status == false){
-                        var father_node =  node_list[data_tmp.father_id];;
-                        while(father_node != undefined){
-                            line_map[node._id][father_node._id].strokeColor = '255,0,0';
-                            node = father_node;
-                            father_node = node_list[father_node.father_id];
-                        }
-                    }
+{#                    if(data_tmp.status == false){#}
+{#                        var father_node =  node_list[data_tmp.father_id];;#}
+{#                        while(father_node != undefined){#}
+{#                            line_map[node._id][father_node._id].strokeColor = '255,0,0';#}
+{#                            node = father_node;#}
+{#                            father_node = node_list[father_node.father_id];#}
+{#                        }#}
+{#                    }#}
                 }
+                console.log(all_nodes);
             }
         });
         function save_img(){
@@ -227,6 +264,11 @@
            }
            alert("保存成功");
         }
+    </script>
+    <script>
+        $(function(){
+            GET_data();
+        });
     </script>
 </body>
 </html>
