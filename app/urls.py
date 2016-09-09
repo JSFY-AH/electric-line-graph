@@ -6,7 +6,6 @@ import views.user
 
 urlpatterns = [
     url('^Cam$', TemplateView.as_view(template_name="app/indexCam.html")),
-    url('^graph/old/$', views.index.painting_old, name="index"),
     url('^graph/$', views.index.painting, name="index"),
     url('^graph/node/update_node_position/$', views.index.update_position, name="update_position"),
     url('^graph/node/update_root_position/$', views.index.update_root_position, name="update_root_position"),

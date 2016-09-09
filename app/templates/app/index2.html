@@ -16,6 +16,9 @@
     <script src="/web_media/js/demo.js"></script>
 </head>
 <body>
+	<div name = "Info" style="width:100%; margin:0 auto;text-align: center;">
+		{{area.name}} : {{line.name}}
+	</div>
     <header style="float: right;">
 {#        <button id = "get-recent-data" class="btn btn-success btn-bg" title="Save my Setting" onclick="GET_data()" style="display: inline-block;">获取最新数据</button>#}
         <button id = "edit-position" class="btn btn-success btn-bg" title="Save my Setting" onclick="save_img()" style="display: none;">保存位置修改</button>
@@ -86,6 +89,9 @@
             $("[name=line_id]").html(line.id);
             $("[name=line_name]").html(line.name);
 
+            var area = {{ area | safe }};
+            var innerHtml = '<h3>区域：' + area.name + ' 线路：' +line.name + '</h3>';
+            $("[name=Info]").html(innerHtml);
             var windowH = $(window).height();
             var windowW = $(window).width();
             var canvas = document.getElementById('canvas');

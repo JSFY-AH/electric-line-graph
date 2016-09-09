@@ -3,8 +3,6 @@ from django.shortcuts import render, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
-import MySQLdb
-import pyodbc
 import hashlib
 import database
 
